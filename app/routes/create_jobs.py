@@ -12,7 +12,7 @@ from fastapi import APIRouter, HTTPException
 
 from app.postgres import POSTGRES
 
-router = APIRouter(tags=["create_filter"])
+router = APIRouter(tags=["Create Jobs"])
 
 
 # --- Request model ---
@@ -38,16 +38,45 @@ async def create_job(
     x_api_key: str = Header(...),
 ):
     """
-    Create a new job and initialize its crawl event.
+    Create a new web crawling job.
 
-    - Accepts input text and optional filter parameters.
-    - Generates a unique job ID (UUID) and stores the job in the `jobs` table with status 'PENDING'.
-    - Immediately creates a corresponding 'CRAWL_READY' event in the `crawl_events` table.
-    - Returns the job ID and creation timestamp.
+    This endpoint allows clients to submit a new crawling job using input text, 
+    optionally filtered by domain restrictions and routed to a test email (for dry-run testing). 
 
-    Raises:
-    - 409 Conflict: If a job with the same UUID somehow exists (rare with auto-gen).
-    - 500 Internal Server Error: For database or unexpected failures.
+    ### Request Body:
+    - **input_text** (`str`, required): The main input string (e.g., text block or article) to be scanned for potential IP infringement.
+    - **filters** (`FilterOptions`, optional): 
+        - `include_domains`: List of domains to exclusively crawl from.
+        - `exclude_domains`: List of domains to avoid.
+    - **test_email** (`str`, optional): If provided, outreach emails will not be sent to extracted contacts; instead, they'll be sent only to this test address.
+
+    ### Headers:
+    - **x-api-key** (`str`, required): API key for authentication.
+
+    ### Response:
+    - **job_id** (`UUID`): Unique identifier of the created job.
+    - **status** (`str`): Always returns `"PENDING"` upon creation.
+    - **created_at** (`datetime`): Timestamp of when the job was created.
+
+    ### Behavior:
+    - Inserts a new row into the `jobs` table with `PENDING` status.
+    - Adds a new `crawl_event` to trigger the crawler asynchronously.
+    - If `test_email` is provided, maps the job to this test email (used for non-production testing).
+    - Logs all key actions for traceability.
+    - Returns conflict error if duplicate job ID is encountered.
+    - Returns 500 error on database or unknown exceptions.
+
+    ### Example:
+    ```json
+    POST /jobs/create
+    {
+        "input_text": "Some input content to process",
+        "filters": {
+            "include_domains": ["example.com"],
+            "exclude_domains": ["test.com"]
+        },
+        "test_email": "your-email@example.com"
+    }
     """
     logger = logging.getLogger("create_job")
     logger.info(f"Received job creation request with input_text: {req.input_text}")

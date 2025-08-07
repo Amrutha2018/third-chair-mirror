@@ -7,7 +7,7 @@ from utils.email_sender import send_outreach_email
 from email.message import EmailMessage
 
 logging.basicConfig(
-    level=logging.INFO,  # Show INFO and above
+    level=logging.INFO,  
     format="%(asctime)s [%(levelname)s] %(message)s",
 )
 

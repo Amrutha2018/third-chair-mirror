@@ -2,9 +2,8 @@ from fastapi import APIRouter, HTTPException, Header
 from fastapi.responses import FileResponse
 import os
 
-router = APIRouter()
+router = APIRouter(tags=["Get File"])
 
-# Base directory where screenshots and OTS files are stored
 SHARED_DIR = os.getenv("SHARED_DIR", "/app/shared")
 
 @router.get("/files/{filename}")
@@ -15,9 +14,8 @@ async def get_public_file(
 ):
     """
     Serve screenshot or OTS file by filename.
-    Example: /files/screenshot_xyz.png
+    Take file path from list drafts API
     """
-    # Prevent directory traversal attacks
     safe_filename = os.path.basename(filename)
     file_path = os.path.join(SHARED_DIR, type, safe_filename)
 
