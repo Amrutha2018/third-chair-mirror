@@ -6,7 +6,7 @@ router = APIRouter(tags=["Get File"])
 
 SHARED_DIR = os.getenv("SHARED_DIR", "/app/shared")
 
-@router.get("/files/{filename}")
+@router.get("/files")
 async def get_public_file(
     filename: str,
     type: str = Header(..., description="Type of file to retrieve (image or ots)"),

@@ -125,7 +125,7 @@ async def court_ready_worker():
 
         except Exception as e:
             logging.exception(f"[COURT] Worker error: {e}")
-            await asyncio.sleep(10)
+            await asyncio.sleep(30)
 
 
 if __name__ == "__main__":

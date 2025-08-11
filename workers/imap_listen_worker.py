@@ -79,7 +79,7 @@ async def start_imap_loop():
     while True:
         try:
             await check_replies()
-            await asyncio.sleep(5)
+            await asyncio.sleep(30)
         except Exception as e:
             logging.exception(f"[IMAP] Unexpected error: {e}")
             await asyncio.sleep(120)

@@ -3,7 +3,7 @@ import os
 import asyncio
 import logging
 from utils.postgres import POSTGRES
-from utils import crawler  
+from utils.crawler import crawler_fun  
 
 CRAWL_TIMEOUT_MINUTES = int(os.getenv("CRAWLER_TIMEOUT_MINUTES", 5))
 
@@ -44,21 +44,27 @@ async def start_crawl_worker():
             logging.info("[CRAWLER] Checking for crawl-ready jobs...")
             job_event = await fetch_crawl_ready_job()
             if job_event:
-                logging.info(f"[CRAWLER] Found job_event: {job_event["id"]} for job_id={job_event["job_id"]}")
+                logging.info(f"[CRAWLER] Found job_event: {job_event['id']} for job_id={job_event['job_id']}")
                 event_id = job_event["id"]
                 job_id = job_event["job_id"]
 
                 await mark_event_in_progress(event_id)
 
                 logging.info(f"[CRAWLER] Processing job_id={job_id}")
-                await crawler(job_id, event_id)
+                await crawler_fun(job_id, event_id)
                 logging.info(f"[CRAWLER] Completed job_id={job_id}")
                 await delete_event(event_id)
                 logging.info(f"[CRAWLER] Deleted job_event with id={event_id}")
             else:
-                await asyncio.sleep(5)  # Sleep before next check
+                await asyncio.sleep(30)  # Sleep before next check
         except Exception as e:
             logging.exception(f"[CRAWLER] Unexpected error: {e}")
+            query = """
+            UPDATE crawl_events 
+            SET is_processing = FALSE, progress_updated_at = now()
+            WHERE id = $1
+            """
+            await POSTGRES.execute(query, [event_id])
 
 async def main():
     await POSTGRES.init()

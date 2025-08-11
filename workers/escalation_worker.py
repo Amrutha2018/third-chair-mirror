@@ -97,7 +97,7 @@ async def escalation_worker_loop():
         logging.info("[ESCALATION] Checking for contacts to escalate...")
         try:
             await check_and_escalate()
-            await asyncio.sleep(5)
+            await asyncio.sleep(30)
         except Exception as e:
             logging.exception(f"[ESCALATION] Error: {e}")
             await asyncio.sleep(120)

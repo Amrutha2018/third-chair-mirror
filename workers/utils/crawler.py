@@ -11,17 +11,17 @@ import requests
 import whois
 from validate_email_address import validate_email
 from typing import List
-from postgres import POSTGRES
+from utils.postgres import POSTGRES
 import uuid
 import datetime
 import logging
 from playwright.async_api import async_playwright
 from fuzzywuzzy import fuzz
 from urllib.parse import urlparse
-from send_mail import send_email
+from utils.send_mail import send_email
 
 
-from postgres import POSTGRES
+from utils.postgres import POSTGRES
 
 SERPER_API_KEY = os.getenv("SERPER_API_KEY")
 SERPER_API_URL = os.getenv("SERPER_API_URL")
@@ -40,6 +40,8 @@ def extract_domain(url):
     return urlparse(url).netloc.lower()
 
 def include_filter(url, include, exclude):
+    include = include or []
+    exclude = exclude or []
     url_domain = extract_domain(url)
     if include and not any(extract_domain(term) == url_domain for term in include):
         return False
@@ -165,7 +167,7 @@ async def scan_url_for_text(job_id, ip_text, url, test_email, threshold=85):
             if score >= threshold:
                 logging.info(f"✅ Match found! URL: {url}, Score: {score}")
                 timestamp = datetime.datetime.now(datetime.timezone.utc)
-                base_name = f"screenshot_{timestamp.strftime("%Y%m%d_%H%M%S")}"
+                base_name = f"screenshot_{timestamp.strftime('%Y%m%d_%H%M%S')}"
 
                 image_path = os.path.join(SHARED_DIR, "images" f"{base_name}.png")
                 ots_path = os.path.join(SHARED_DIR, "ots", f"{base_name}.ots")
@@ -237,7 +239,7 @@ async def save_crawl_result(job_id, result):
     
     return results[0]['id'] 
 
-async def crawler(job_id, event_id):
+async def crawler_fun(job_id, event_id):
     logger = logging.getLogger("crawler")
     logger.info(f"[CRAWLER] Starting crawl for job_id={job_id}")
 

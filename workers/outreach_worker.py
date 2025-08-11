@@ -64,7 +64,7 @@ async def outreach_worker_loop():
 
                 asyncio.create_task(process_contact(contact))
 
-        await asyncio.sleep(5)  # sleep for 5 minutes
+        await asyncio.sleep(30)  # sleep for 5 minutes
 
 
 if __name__ == "__main__":

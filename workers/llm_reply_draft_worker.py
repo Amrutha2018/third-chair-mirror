@@ -73,7 +73,7 @@ async def run_drafter_periodically():
             await draft_llm_followups()
         except Exception as e:
             logging.exception(f"[LLM] Error while drafting replies: {e}")
-        await asyncio.sleep(5)  # 5 minutes
+        await asyncio.sleep(30)  # 5 minutes
 
 if __name__ == "__main__":
     asyncio.run(run_drafter_periodically())
